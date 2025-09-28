@@ -41,50 +41,57 @@ export default function CreateArticleForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Prompt</label>
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          required
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Enter article topic"
-        />
-      </div>
+    <div className="flex justify-center mt-8">
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+        {/* Prompt Input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Prompt</label>
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            required
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter article topic"
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Depth</label>
-        <input
-          type="number"
-          min="1"
-          value={depth}
-          onChange={(e) => setDepth(e.target.value)}
-          required
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+        {/* Depth & Breadth Side by Side */}
+        <div className="flex space-x-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Depth</label>
+            <input
+              type="number"
+              min="1"
+              value={depth}
+              onChange={(e) => setDepth(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Breadth</label>
-        <input
-          type="number"
-          min="1"
-          value={breadth}
-          onChange={(e) => setBreadth(e.target.value)}
-          required
-          className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Breadth</label>
+            <input
+              type="number"
+              min="1"
+              value={breadth}
+              onChange={(e) => setBreadth(e.target.value)}
+              required
+              className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-      >
-        {loading ? 'Processing...' : 'Generate'}
-      </button>
-    </form>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          {loading ? 'Processing...' : 'Generate'}
+        </button>
+      </form>
+    </div>
   );
 }

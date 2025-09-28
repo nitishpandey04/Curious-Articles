@@ -1,50 +1,12 @@
-// import { NextResponse } from 'next/server';
-// import fs from 'fs';
-// import path from 'path';
-
-// const FASTAPI_URL = 'http://127.0.0.1:8000/create_article';
-
-// export async function POST(req) {
-//   try {
-//     const body = await req.json();
-
-//     const fastapiRes = await fetch(FASTAPI_URL, {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify(body),
-//     });
-
-//     if (!fastapiRes.ok) {
-//       return NextResponse.json({ error: 'FastAPI failed' }, { status: 500 });
-//     }
-
-//     const arrayBuffer = await fastapiRes.arrayBuffer();
-//     const buffer = Buffer.from(arrayBuffer);
-
-//     const articlesDir = path.join(process.cwd(), 'articles');
-//     if (!fs.existsSync(articlesDir)) {
-//       fs.mkdirSync(articlesDir, { recursive: true });
-//     }
-
-//     const filePath = path.join(articlesDir, `${body.id}.md`);
-//     fs.writeFileSync(filePath, buffer);
-
-//     return NextResponse.json({ success: true });
-//   } catch (err) {
-//     console.error('API error:', err);
-//     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-//   }
-// }
-
-
-
-
-
+// app/api/generate-mdx/route.js
 import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 
-const FASTAPI_URL = 'http://127.0.0.1:8000/create_article';
-const MONGODB_URI = process.env.MONGODB_URI; // put this in your .env.local file
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const FASTAPI_URL = `${BASE_URL}/api/create-article`;
+const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = 'curious-articles';
 const COLLECTION_NAME = 'articles';
 
@@ -52,9 +14,15 @@ export async function POST(req) {
   let client;
 
   try {
+    // Require an authenticated session and capture the user's email.
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
 
-    // Call FastAPI to generate article
+    // Generate article via internal route (no separate backend).
     const fastapiRes = await fetch(FASTAPI_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,27 +30,25 @@ export async function POST(req) {
     });
 
     if (!fastapiRes.ok) {
-      return NextResponse.json({ error: 'FastAPI failed' }, { status: 500 });
+      return NextResponse.json({ error: 'Create-article failed' }, { status: 500 });
     }
 
-    // Read generated markdown file as string
     const arrayBuffer = await fastapiRes.arrayBuffer();
     const markdownContent = Buffer.from(arrayBuffer).toString('utf-8');
 
-    // Connect to MongoDB
     client = new MongoClient(MONGODB_URI);
     await client.connect();
 
     const db = client.db(DB_NAME);
     const collection = db.collection(COLLECTION_NAME);
 
-    // Insert article into collection
     const result = await collection.insertOne({
       id: body.id,
       prompt: body.name,
       depth: body.depth,
       breadth: body.breadth,
       content: markdownContent,
+      userEmail: session.user.email, // tie article to the logged-in user
       createdAt: new Date(),
     });
 
@@ -91,8 +57,6 @@ export async function POST(req) {
     console.error('API error:', err);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   } finally {
-    if (client) {
-      await client.close();
-    }
+    if (client) await client.close();
   }
 }

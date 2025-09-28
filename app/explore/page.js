@@ -1,14 +1,12 @@
-// app/library/page.js
+// app/explore/page.js
 import Link from 'next/link';
 import { MongoClient } from 'mongodb';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../api/auth/[...nextauth]/route';
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.MONGODB_DB;
 const COLLECTION_NAME = 'articles';
 
-// Server-side formatters
+// Locale-aware formatters (server-safe, created once)
 const dateFmt = new Intl.DateTimeFormat('en-IN', {
   year: 'numeric',
   month: 'short',
@@ -17,10 +15,10 @@ const dateFmt = new Intl.DateTimeFormat('en-IN', {
 const timeFmt = new Intl.DateTimeFormat('en-IN', {
   hour: '2-digit',
   minute: '2-digit',
-  hour12: false,
+  hour12: false, // set true for 12h clocks
 });
 
-async function getUserArticles(email) {
+async function getAllArticles() {
   const client = new MongoClient(MONGODB_URI);
   await client.connect();
   try {
@@ -31,11 +29,11 @@ async function getUserArticles(email) {
       prompt: 1,
       createdAt: 1,
       userEmail: 1,
-      userName: 1,
+      userName: 1, // if you ever store a display name
     };
     return await db
       .collection(COLLECTION_NAME)
-      .find({ userEmail: email }, { projection })
+      .find({}, { projection })
       .sort({ createdAt: -1 })
       .toArray();
   } finally {
@@ -43,31 +41,18 @@ async function getUserArticles(email) {
   }
 }
 
-// If this page should always be fresh for each user request:
+// Optional: force dynamic rendering if you want fresh data on each request
 export const dynamic = 'force-dynamic';
 
-export default async function LibraryPage() {
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email;
-
-  // If unauthenticated, render empty state (or redirect)
-  if (!email) {
-    return (
-      <div className="max-w-3xl mx-auto mt-12 p-6">
-        <h1 className="text-2xl font-semibold mb-6 text-center">📚 Library</h1>
-        <p className="text-gray-500 text-center">Sign in to view saved articles.</p>
-      </div>
-    );
-  }
-
-  const articles = await getUserArticles(email);
+export default async function ExplorePage() {
+  const articles = await getAllArticles();
 
   return (
     <div className="max-w-3xl mx-auto mt-12 p-6">
-      <h1 className="text-2xl font-semibold mb-6 text-center">📚 Library</h1>
+      <h1 className="text-2xl font-semibold mb-6 text-center">🌐 Explore</h1>
 
       {articles.length === 0 ? (
-        <p className="text-gray-500 text-center">No articles found.</p>
+        <p className="text-gray-500 text-center">No articles yet.</p>
       ) : (
         <ul className="space-y-4">
           {articles.map((a) => {
@@ -75,6 +60,7 @@ export default async function LibraryPage() {
             const dateStr = dateFmt.format(created);
             const timeStr = timeFmt.format(created);
             const author = a.userName || a.userEmail || 'Unknown';
+
             return (
               <li
                 key={a.id}

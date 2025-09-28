@@ -18,7 +18,7 @@ export default function HomePage() {
 
         <h1 className="text-4xl font-bold mb-4">Welcome to Curious Articles</h1>
         <p className="text-gray-600 text-lg mb-8">
-          Generate structured, meaningful content from a simple prompt. Browse your collection and expand your ideas.
+          
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -30,10 +30,10 @@ export default function HomePage() {
           </Link>
 
           <Link
-            href="/library"
+            href="/explore"
             className="px-6 py-3 rounded-lg bg-gray-100 text-gray-800 hover:bg-gray-200 text-lg font-medium transition"
           >
-            📚 View Library
+            🌐 Explore
           </Link>
         </div>
       </div>
