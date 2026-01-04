@@ -1,26 +1,38 @@
-"use client";
-import { useState } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+'use client';
+
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function SigninPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   async function handleLogin(e) {
     e.preventDefault();
-    const res = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-    });
-    if (res.error) {
-      setError("Invalid email or password");
-    } else {
-      router.push("/");
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setError('Invalid email or password');
+      } else {
+        router.push('/');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -30,33 +42,38 @@ export default function SigninPage() {
 
       <form onSubmit={handleLogin} className="flex flex-col gap-4">
         <input
+          type="email"
           className="border p-2 rounded"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
-          className="border p-2 rounded"
           type="password"
+          className="border p-2 rounded"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
-        <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-          Sign In
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
 
       {error && <p className="text-red-600 mt-3 text-center">{error}</p>}
 
-      <div className="mt-6 text-center text-sm">
-        <p className="mb-2">Don't have an account?</p>
-        <Link href="/auth/signup">
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-            Create an Account
-          </button>
+      <p className="mt-4 text-center text-sm text-gray-600">
+        Don&apos;t have an account?{' '}
+        <Link href="/auth/signup" className="text-blue-600 hover:underline">
+          Create an account
         </Link>
-      </div>
+      </p>
     </div>
   );
 }

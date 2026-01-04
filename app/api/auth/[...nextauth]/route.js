@@ -1,20 +1,21 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import clientPromise from "@/lib/mongodb";
-import bcrypt from "bcrypt";
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import clientPromise from '@/lib/mongodb';
+import bcrypt from 'bcrypt';
+import { DB_NAME, COLLECTIONS } from '@/lib/constants';
 
 export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         const client = await clientPromise;
-        const db = client.db(process.env.MONGODB_DB);
-        const users = db.collection("users");
+        const db = client.db(DB_NAME);
+        const users = db.collection(COLLECTIONS.USERS);
 
         const user = await users.findOne({ email: credentials.email });
         if (!user) return null;
@@ -26,7 +27,7 @@ export const authOptions = {
       },
     }),
   ],
-  session: { strategy: "jwt" },
+  session: { strategy: 'jwt' },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
