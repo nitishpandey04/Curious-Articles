@@ -5,10 +5,15 @@ import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { getArticleWithOwnerCheck } from '@/lib/db/articles';
+import { hasUserLiked } from '@/lib/db/likes';
+import { hasUserBookmarked } from '@/lib/db/bookmarks';
+import { getCommentsByArticle } from '@/lib/db/comments';
 import { formatDate } from '@/lib/utils/dateFormatter';
 import VisibilityBadge from '@/components/VisibilityBadge';
 import ArticleTableOfContents from '@/components/ArticleTableOfContents';
 import ArticleSidebar from '@/components/ArticleSidebar';
+import EngagementBar from '@/components/EngagementBar';
+import CommentsSection from '@/components/CommentsSection';
 
 // Remove citations like [1], [2][3], etc.
 function removeCitations(content) {
@@ -93,6 +98,17 @@ export default async function ArticlePage({ params }) {
   const dateStr = formatDate(article.createdAt);
   const author = article.userName || article.userEmail?.split('@')[0] || 'Anonymous';
 
+  // Fetch engagement data
+  const userEmail = session?.user?.email;
+  const [userLiked, userBookmarked, comments] = await Promise.all([
+    userEmail ? hasUserLiked(articleid, userEmail) : false,
+    userEmail ? hasUserBookmarked(articleid, userEmail) : false,
+    getCommentsByArticle(articleid),
+  ]);
+
+  // Sanitize comments (remove _id)
+  const sanitizedComments = comments.map(({ _id, ...comment }) => comment);
+
   // Process content: remove citations
   const processedContent = removeCitations(article.content);
   const headings = extractHeadings(article.content);
@@ -151,6 +167,16 @@ export default async function ArticlePage({ params }) {
                 </>
               )}
             </div>
+
+            {/* Engagement Bar */}
+            <div className="mt-6">
+              <EngagementBar
+                articleId={articleid}
+                initialLiked={userLiked}
+                initialLikeCount={article.likeCount || 0}
+                initialBookmarked={userBookmarked}
+              />
+            </div>
           </header>
 
           {/* Divider */}
@@ -199,6 +225,13 @@ export default async function ArticlePage({ params }) {
               </Link>
             </div>
           </footer>
+
+          {/* Comments Section */}
+          <CommentsSection
+            articleId={articleid}
+            initialComments={sanitizedComments}
+            initialCount={article.commentCount || 0}
+          />
         </main>
 
         {/* Desktop sidebar */}

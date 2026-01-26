@@ -13,6 +13,7 @@ export default function NavBar() {
     { href: '/explore', label: 'Explore' },
     { href: '/create', label: 'Create' },
     { href: '/library', label: 'Library' },
+    { href: '/bookmarks', label: 'Bookmarks' },
   ];
 
   const isActive = (href) => {
