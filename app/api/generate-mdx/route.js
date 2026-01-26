@@ -15,6 +15,7 @@ export async function POST(req) {
 
     const body = await req.json();
     const isPublic = body.isPublic !== false; // Default to true
+    const tags = Array.isArray(body.tags) ? body.tags.slice(0, 5) : []; // Max 5 tags
 
     const createRes = await fetch(CREATE_ARTICLE_URL, {
       method: 'POST',
@@ -38,6 +39,7 @@ export async function POST(req) {
       userEmail: session.user.email,
       userName: session.user.username || null,
       isPublic,
+      tags,
     });
 
     return successResponse({ success: true, insertedId: result.insertedId });

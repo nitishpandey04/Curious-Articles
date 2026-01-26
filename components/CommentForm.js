@@ -44,8 +44,8 @@ export default function CommentForm({ articleId, onCommentAdded }) {
 
   if (!session) {
     return (
-      <div className="bg-gray-50 rounded-lg p-4 text-center">
-        <p className="text-gray-600 mb-2">Sign in to join the conversation</p>
+      <div className="bg-gray-50 dark:bg-slate-800 rounded-lg p-4 text-center">
+        <p className="text-gray-600 dark:text-gray-300 mb-2">Sign in to join the conversation</p>
         <Link
           href="/auth/signin"
           className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
@@ -68,16 +68,16 @@ export default function CommentForm({ articleId, onCommentAdded }) {
           placeholder="Share your thoughts..."
           rows={3}
           maxLength={maxChars}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          className="w-full px-4 py-3 border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition placeholder-gray-400"
           disabled={isSubmitting}
         />
-        <div className="absolute bottom-2 right-2 text-xs text-gray-400">
+        <div className="absolute bottom-2 right-2 text-xs text-gray-400 dark:text-gray-500">
           {charCount}/{maxChars}
         </div>
       </div>
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
       )}
 
       <div className="flex justify-end">

@@ -4,7 +4,7 @@ import rehypeSlug from 'rehype-slug';
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { getArticleWithOwnerCheck } from '@/lib/db/articles';
+import { getArticleWithOwnerCheck, incrementViewCount } from '@/lib/db/articles';
 import { hasUserLiked } from '@/lib/db/likes';
 import { hasUserBookmarked } from '@/lib/db/bookmarks';
 import { getCommentsByArticle } from '@/lib/db/comments';
@@ -14,6 +14,7 @@ import ArticleTableOfContents from '@/components/ArticleTableOfContents';
 import ArticleSidebar from '@/components/ArticleSidebar';
 import EngagementBar from '@/components/EngagementBar';
 import CommentsSection from '@/components/CommentsSection';
+import ShareButtons from '@/components/ShareButtons';
 
 // Remove citations like [1], [2][3], etc.
 function removeCitations(content) {
@@ -98,6 +99,13 @@ export default async function ArticlePage({ params }) {
   const dateStr = formatDate(article.createdAt);
   const author = article.userName || article.userEmail?.split('@')[0] || 'Anonymous';
 
+  // Calculate reading time (200 words per minute)
+  const wordCount = article.wordCount || (article.content ? article.content.trim().split(/\s+/).length : 0);
+  const readingTime = Math.max(1, Math.ceil(wordCount / 200));
+
+  // Increment view count (fire and forget, don't block rendering)
+  incrementViewCount(articleid).catch(() => {});
+
   // Fetch engagement data
   const userEmail = session?.user?.email;
   const [userLiked, userBookmarked, comments] = await Promise.all([
@@ -123,7 +131,7 @@ export default async function ArticlePage({ params }) {
       <div className="mb-8">
         <Link
           href="/explore"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition group"
+          className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition group"
         >
           <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -140,7 +148,7 @@ export default async function ArticlePage({ params }) {
         <main className="min-w-0">
           {/* Article header */}
           <header className="mb-10">
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
               {title}
             </h1>
 
@@ -151,51 +159,74 @@ export default async function ArticlePage({ params }) {
                     {author.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <span className="font-medium text-gray-900">{author}</span>
+                <span className="font-medium text-gray-900 dark:text-white">{author}</span>
               </div>
 
-              <span className="text-gray-300">|</span>
+              <span className="text-gray-300 dark:text-gray-600">|</span>
 
-              <time className="text-gray-500" dateTime={article.createdAt}>
+              <time className="text-gray-500 dark:text-gray-400" dateTime={article.createdAt}>
                 {dateStr}
               </time>
 
+              <span className="text-gray-300 dark:text-gray-600">|</span>
+
+              <span className="text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {readingTime} min read
+              </span>
+
+              {(article.viewCount > 0) && (
+                <>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <span className="text-gray-500 dark:text-gray-400 inline-flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    {article.viewCount} views
+                  </span>
+                </>
+              )}
+
               {isOwner && (
                 <>
-                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
                   <VisibilityBadge isPublic={article.isPublic !== false} />
                 </>
               )}
             </div>
 
-            {/* Engagement Bar */}
-            <div className="mt-6">
+            {/* Engagement Bar and Share */}
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
               <EngagementBar
                 articleId={articleid}
                 initialLiked={userLiked}
                 initialLikeCount={article.likeCount || 0}
                 initialBookmarked={userBookmarked}
               />
+              <ShareButtons title={title} />
             </div>
           </header>
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 mb-10" />
+          <div className="h-px bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-slate-700 dark:via-slate-600 dark:to-slate-700 mb-10" />
 
           {/* Article content */}
-          <article className="prose prose-lg max-w-none
-            prose-headings:font-bold prose-headings:text-gray-900 prose-headings:scroll-mt-24
+          <article className="prose prose-lg max-w-none dark:prose-invert
+            prose-headings:font-bold prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:scroll-mt-24
             prose-h1:text-2xl prose-h1:mt-10 prose-h1:mb-4
             prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-3
             prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-2
-            prose-p:text-gray-700 prose-p:leading-relaxed
-            prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-            prose-strong:text-gray-900
+            prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-p:leading-relaxed
+            prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-a:no-underline hover:prose-a:underline
+            prose-strong:text-gray-900 dark:prose-strong:text-white
             prose-ul:my-4 prose-ol:my-4
-            prose-li:text-gray-700 prose-li:my-1
-            prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-            prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-gray-900 prose-pre:rounded-xl
+            prose-li:text-gray-700 dark:prose-li:text-gray-300 prose-li:my-1
+            prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 dark:prose-blockquote:bg-blue-900/20 prose-blockquote:py-1 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
+            prose-code:bg-gray-100 dark:prose-code:bg-slate-700 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
+            prose-pre:bg-gray-900 dark:prose-pre:bg-slate-800 prose-pre:rounded-xl
           ">
             <MDXRemote
               source={processedContent}
@@ -209,14 +240,14 @@ export default async function ArticlePage({ params }) {
           </article>
 
           {/* Article footer */}
-          <footer className="mt-16 pt-8 border-t border-gray-200">
+          <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-slate-700">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
                 Generated with Curious Articles
               </div>
               <Link
                 href="/create"
-                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition"
+                className="inline-flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition"
               >
                 Create your own article
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

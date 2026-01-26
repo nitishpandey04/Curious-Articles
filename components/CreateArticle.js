@@ -3,12 +3,14 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import VisibilityToggle from './VisibilityToggle';
+import TagInput from './TagInput';
 
 export default function CreateArticleForm() {
   const [prompt, setPrompt] = useState('');
   const [depth, setDepth] = useState(2);
   const [breadth, setBreadth] = useState(2);
   const [isPublic, setIsPublic] = useState(true);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function CreateArticleForm() {
           depth: parseInt(depth, 10),
           breadth: parseInt(breadth, 10),
           isPublic,
+          tags,
         }),
       });
 
@@ -47,10 +50,10 @@ export default function CreateArticleForm() {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-6">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-sm font-medium text-gray-900 mb-2">
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
             Topic
           </label>
           <input
@@ -58,17 +61,24 @@ export default function CreateArticleForm() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+            className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             placeholder="e.g., The history of artificial intelligence"
           />
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Enter the main topic or question you want to explore
           </p>
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
+            Tags
+          </label>
+          <TagInput tags={tags} onChange={setTags} maxTags={5} />
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
               Depth
             </label>
             <input
@@ -78,15 +88,15 @@ export default function CreateArticleForm() {
               value={depth}
               onChange={(e) => setDepth(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               How many levels deep (1-5)
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-900 mb-2">
+            <label className="block text-sm font-medium text-gray-900 dark:text-white mb-2">
               Breadth
             </label>
             <input
@@ -96,20 +106,20 @@ export default function CreateArticleForm() {
               value={breadth}
               onChange={(e) => setBreadth(e.target.value)}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Questions per level (1-5)
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700 rounded-lg">
           <div>
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {isPublic ? 'Public Article' : 'Private Article'}
             </span>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {isPublic
                 ? 'Anyone can view this article on Explore'
                 : 'Only you can view this article'}
@@ -119,8 +129,8 @@ export default function CreateArticleForm() {
         </div>
 
         {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
           </div>
         )}
 
@@ -148,7 +158,7 @@ export default function CreateArticleForm() {
         </button>
 
         {loading && (
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             This may take a minute depending on depth and breadth settings...
           </p>
         )}

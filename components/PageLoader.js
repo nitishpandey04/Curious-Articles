@@ -4,7 +4,7 @@ export default function PageLoader({ message = 'Loading...' }) {
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-12 h-12 mb-4">
           <svg
-            className="animate-spin h-8 w-8 text-blue-600"
+            className="animate-spin h-8 w-8 text-blue-600 dark:text-blue-400"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -24,7 +24,7 @@ export default function PageLoader({ message = 'Loading...' }) {
             />
           </svg>
         </div>
-        <p className="text-gray-500 text-sm font-medium">{message}</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">{message}</p>
       </div>
     </div>
   );

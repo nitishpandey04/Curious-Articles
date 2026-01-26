@@ -19,8 +19,8 @@ export default function CommentsSection({ articleId, initialComments = [], initi
   };
 
   return (
-    <section className="mt-12 pt-8 border-t border-gray-200">
-      <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+    <section className="mt-12 pt-8 border-t border-gray-200 dark:border-slate-700">
+      <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
         </svg>
@@ -34,7 +34,7 @@ export default function CommentsSection({ articleId, initialComments = [], initi
 
       {/* Comments List */}
       {comments.length > 0 ? (
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-gray-100 dark:divide-slate-700">
           {comments.map((comment) => (
             <CommentItem
               key={comment.id}
@@ -45,12 +45,12 @@ export default function CommentsSection({ articleId, initialComments = [], initi
         </div>
       ) : (
         <div className="text-center py-8">
-          <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-            <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-12 h-12 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3">
+            <svg className="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
-          <p className="text-gray-500 text-sm">No comments yet. Be the first to share your thoughts!</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">No comments yet. Be the first to share your thoughts!</p>
         </div>
       )}
     </section>

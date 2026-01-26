@@ -50,7 +50,7 @@ export default function CommentItem({ comment, onDelete }) {
   const authorInitial = comment.userName?.charAt(0).toUpperCase() || '?';
 
   return (
-    <div className="flex gap-3 py-4 border-b border-gray-100 last:border-b-0">
+    <div className="flex gap-3 py-4 border-b border-gray-100 dark:border-slate-700 last:border-b-0">
       {/* Avatar */}
       <div className="flex-shrink-0">
         <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
@@ -61,31 +61,31 @@ export default function CommentItem({ comment, onDelete }) {
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium text-gray-900 text-sm">{comment.userName}</span>
-          <span className="text-gray-400 text-xs">·</span>
-          <time className="text-gray-400 text-xs" dateTime={comment.createdAt}>
+          <span className="font-medium text-gray-900 dark:text-white text-sm">{comment.userName}</span>
+          <span className="text-gray-400 dark:text-gray-500 text-xs">·</span>
+          <time className="text-gray-400 dark:text-gray-500 text-xs" dateTime={comment.createdAt}>
             {formatRelativeTime(comment.createdAt)}
           </time>
         </div>
 
-        <p className="text-gray-700 text-sm whitespace-pre-wrap break-words">{comment.content}</p>
+        <p className="text-gray-700 dark:text-gray-300 text-sm whitespace-pre-wrap break-words">{comment.content}</p>
 
         {/* Actions */}
         {isOwner && (
           <div className="mt-2">
             {showConfirm ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">Delete this comment?</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">Delete this comment?</span>
                 <button
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="text-xs text-red-600 hover:text-red-700 font-medium"
+                  className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
                 >
                   {isDeleting ? 'Deleting...' : 'Yes'}
                 </button>
                 <button
                   onClick={() => setShowConfirm(false)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 >
                   No
                 </button>
@@ -93,7 +93,7 @@ export default function CommentItem({ comment, onDelete }) {
             ) : (
               <button
                 onClick={() => setShowConfirm(true)}
-                className="text-xs text-gray-400 hover:text-red-600 transition"
+                className="text-xs text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition"
               >
                 Delete
               </button>
