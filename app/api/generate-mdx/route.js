@@ -14,6 +14,7 @@ export async function POST(req) {
     }
 
     const body = await req.json();
+    const isPublic = body.isPublic !== false; // Default to true
 
     const createRes = await fetch(CREATE_ARTICLE_URL, {
       method: 'POST',
@@ -35,6 +36,8 @@ export async function POST(req) {
       breadth: body.breadth,
       content: markdownContent,
       userEmail: session.user.email,
+      userName: session.user.username || null,
+      isPublic,
     });
 
     return successResponse({ success: true, insertedId: result.insertedId });

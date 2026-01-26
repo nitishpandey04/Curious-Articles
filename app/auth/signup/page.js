@@ -1,15 +1,42 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const router = useRouter();
+
+  // Debounced username availability check
+  useEffect(() => {
+    if (!username || username.length < 3) {
+      setUsernameStatus(null);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setCheckingUsername(true);
+      try {
+        const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        setUsernameStatus(data);
+      } catch {
+        setUsernameStatus(null);
+      } finally {
+        setCheckingUsername(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [username]);
 
   async function handleSignup(e) {
     e.preventDefault();
@@ -20,7 +47,7 @@ export default function SignupPage() {
       const res = await fetch('/api/users/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, username: username || undefined, name: name || undefined }),
       });
 
       if (!res.ok) {
@@ -49,7 +76,7 @@ export default function SignupPage() {
           <form onSubmit={handleSignup} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email
+                Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -63,7 +90,7 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
+                Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -79,6 +106,56 @@ export default function SignupPage() {
               </p>
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username <span className="text-gray-400">(optional)</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                <input
+                  type="text"
+                  className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  placeholder="your_username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  maxLength={30}
+                />
+              </div>
+              <div className="mt-1 text-sm">
+                {checkingUsername && (
+                  <span className="text-gray-500">Checking availability...</span>
+                )}
+                {!checkingUsername && usernameStatus && (
+                  <span className={usernameStatus.available ? 'text-green-600' : 'text-red-600'}>
+                    {usernameStatus.available ? 'Username is available' : usernameStatus.reason}
+                  </span>
+                )}
+                {!checkingUsername && !usernameStatus && username.length > 0 && username.length < 3 && (
+                  <span className="text-gray-500">Username must be at least 3 characters</span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Your unique handle for your public profile
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Display Name <span className="text-gray-400">(optional)</span>
+              </label>
+              <input
+                type="text"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                placeholder="Your Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={100}
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                How you want to be displayed to others
+              </p>
+            </div>
+
             {error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm text-center">{error}</p>
@@ -87,7 +164,7 @@ export default function SignupPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (username && usernameStatus && !usernameStatus.available)}
               className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {loading ? (

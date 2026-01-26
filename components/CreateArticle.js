@@ -2,11 +2,13 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import VisibilityToggle from './VisibilityToggle';
 
 export default function CreateArticleForm() {
   const [prompt, setPrompt] = useState('');
   const [depth, setDepth] = useState(2);
   const [breadth, setBreadth] = useState(2);
+  const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const router = useRouter();
@@ -27,6 +29,7 @@ export default function CreateArticleForm() {
           name: prompt,
           depth: parseInt(depth, 10),
           breadth: parseInt(breadth, 10),
+          isPublic,
         }),
       });
 
@@ -99,6 +102,20 @@ export default function CreateArticleForm() {
               Questions per level (1-5)
             </p>
           </div>
+        </div>
+
+        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div>
+            <span className="text-sm font-medium text-gray-900">
+              {isPublic ? 'Public Article' : 'Private Article'}
+            </span>
+            <p className="text-sm text-gray-500">
+              {isPublic
+                ? 'Anyone can view this article on Explore'
+                : 'Only you can view this article'}
+            </p>
+          </div>
+          <VisibilityToggle isPublic={isPublic} onChange={setIsPublic} />
         </div>
 
         {error && (

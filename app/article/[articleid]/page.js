@@ -1,13 +1,18 @@
 import { MDXRemote } from 'next-mdx-remote-client/rsc';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
-import { getArticleById } from '@/lib/db/articles';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getArticleWithOwnerCheck } from '@/lib/db/articles';
 import { formatDate, formatTime } from '@/lib/utils/dateFormatter';
+import VisibilityBadge from '@/components/VisibilityBadge';
 
 export default async function ArticlePage({ params }) {
   const { articleid } = await params;
+  const session = await getServerSession(authOptions);
 
-  const article = await getArticleById(articleid);
+  const article = await getArticleWithOwnerCheck(articleid, session?.user?.email);
+
   if (!article) {
     return (
       <div className="max-w-3xl mx-auto py-16 px-4 text-center">
@@ -25,6 +30,27 @@ export default async function ArticlePage({ params }) {
       </div>
     );
   }
+
+  // Check if access was denied (private article, not the owner)
+  if (article.accessDenied) {
+    return (
+      <div className="max-w-3xl mx-auto py-16 px-4 text-center">
+        <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <h1 className="text-xl font-semibold text-gray-900 mb-2">Private Article</h1>
+        <p className="text-gray-500 mb-6">This article is private and can only be viewed by its author.</p>
+        <Link
+          href="/explore"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          Browse public articles
+        </Link>
+      </div>
+    );
+  }
+
+  const isOwner = session?.user?.email === article.userEmail;
 
   const dateStr = formatDate(article.createdAt);
   const timeStr = formatTime(article.createdAt);
@@ -45,17 +71,22 @@ export default async function ArticlePage({ params }) {
 
       {/* Article metadata */}
       <div className="mb-8 pb-6 border-b border-gray-200">
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span className="inline-flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-            {author}
-          </span>
-          <span className="text-gray-300">|</span>
-          <span>{dateStr}</span>
-          <span className="text-gray-300">|</span>
-          <span>{timeStr}</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <span className="inline-flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {author}
+            </span>
+            <span className="text-gray-300">|</span>
+            <span>{dateStr}</span>
+            <span className="text-gray-300">|</span>
+            <span>{timeStr}</span>
+          </div>
+          {isOwner && (
+            <VisibilityBadge isPublic={article.isPublic !== false} />
+          )}
         </div>
       </div>
 

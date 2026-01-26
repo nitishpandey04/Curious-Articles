@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { formatDate, formatTime } from '@/lib/utils/dateFormatter';
+import VisibilityBadge from './VisibilityBadge';
 
-export default function ArticleCard({ article }) {
+export default function ArticleCard({ article, showVisibility = false }) {
   const dateStr = formatDate(article.createdAt);
   const timeStr = formatTime(article.createdAt);
   const author = article.userName || article.userEmail?.split('@')[0] || 'Unknown';
@@ -9,9 +10,14 @@ export default function ArticleCard({ article }) {
   return (
     <li className="group p-5 bg-white border border-gray-200 rounded-lg hover:border-blue-200 hover:shadow-md transition-all duration-200">
       <Link href={`/article/${article.id}`} className="block">
-        <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-          {article.prompt}
-        </h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 flex-1">
+            {article.prompt}
+          </h2>
+          {showVisibility && (
+            <VisibilityBadge isPublic={article.isPublic !== false} />
+          )}
+        </div>
         <div className="flex items-center gap-2 mt-3 text-sm text-gray-500">
           <span className="inline-flex items-center gap-1">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
